@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import BadgerMessage from "./BadgerMessage";
-import { Container, Row, Col } from "react-bootstrap";
+import { Container, Row, Col, Pagination } from "react-bootstrap";
 
 export default function BadgerChatroom(props) {
   const [messages, setMessages] = useState([]);
@@ -26,6 +26,31 @@ export default function BadgerChatroom(props) {
   // chatrooms, only its props change! Try it yourself.
   useEffect(loadMessages, [props]);
 
+  const [currPage, setcurrPage] = useState(1);
+
+  let totalPage;
+
+  const buildPagination = (length) => {
+    let page = [];
+    totalPage = Math.ceil(length / 25);
+
+    for (let number = 1; number <= totalPage; number++) {
+      page.push(
+        <Pagination.Item
+          key={number}
+          active={currPage === number}
+          onClick={() => {
+            setcurrPage(number);
+          }}
+        >
+          {" "}
+          {number}
+        </Pagination.Item>
+      );
+    }
+    return page;
+  };
+
   return (
     <>
       <h1>{props.name} Chatroom</h1>
@@ -35,20 +60,24 @@ export default function BadgerChatroom(props) {
         <>
           <Container fluid>
             <Row>
-              {messages.map((message) => {
-                return (
-                  <Col key={message.id} xs={12} sm={12} md={6} lg={4} xl={3}>
-                    <BadgerMessage
-                      title={message.title}
-                      poster={message.poster}
-                      content={message.content}
-                      created={message.created}
-                    />
-                  </Col>
-                );
-              })}
+              {messages
+                .slice((currPage - 1) * 25, currPage * 25)
+                .map((message) => {
+                  return (
+                    <Col key={message.id} xs={12} sm={12} md={6} lg={4} xl={3}>
+                      <BadgerMessage
+                        title={message.title}
+                        poster={message.poster}
+                        content={message.content}
+                        created={message.created}
+                      />
+                    </Col>
+                  );
+                })}
             </Row>
           </Container>
+
+          <Pagination>{buildPagination(messages.length)}</Pagination>
         </>
       ) : (
         <>
