@@ -1,8 +1,14 @@
 import axios from "axios";
-import React, { useState } from "react";
+import React, { useContext, useState } from "react";
 import { Form, Button } from "react-bootstrap";
+import BadgerLoginStatusContext from "../contexts/BadgerLoginStatusContext";
+import { useNavigate } from "react-router";
 
 export default function BadgerRegister() {
+  //Check login Context
+  const [loginStatus, setLoginStatus] = useContext(BadgerLoginStatusContext);
+  const navigate = useNavigate();
+
   // TODO Create the register component.
 
   const [username, setusername] = useState("");
@@ -55,6 +61,9 @@ export default function BadgerRegister() {
         alert("The user already exists!");
       } else if (response.data.msg === "Successfully authenticated.") {
         alert("Successfully authenticated.");
+        sessionStorage.setItem("checkLogin", JSON.stringify([true]));
+        setLoginStatus([true]);
+        navigate("/");
       }
     }
   };

@@ -1,8 +1,14 @@
 import axios from "axios";
-import React, { useRef, useState } from "react";
+import React, { useContext, useRef } from "react";
 import { Form, Button } from "react-bootstrap";
+import BadgerLoginStatusContext from "../contexts/BadgerLoginStatusContext";
+import { useNavigate } from "react-router";
 
 export default function BadgerLogin() {
+  //Check login Context
+  const [loginStatus, setLoginStatus] = useContext(BadgerLoginStatusContext);
+  const navigate = useNavigate();
+
   // TODO Create the login component.
   const userInput = useRef();
   const passwordInput = useRef();
@@ -44,6 +50,9 @@ export default function BadgerLogin() {
         alert("Incorrect username or password!");
       } else if (response.data.msg === "Successfully authenticated.") {
         alert("Successfully Login.");
+        sessionStorage.setItem("checkLogin", JSON.stringify([true]));
+        setLoginStatus([true]);
+        navigate("/");
       }
     }
   };
