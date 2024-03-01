@@ -24,12 +24,10 @@ export default function BadgerChatroom(props) {
 
   console.log(messages);
 
-  //reload message after post
+  //useState determines reload
   const [post, setPost] = useState(false);
 
-  // Why can't we just say []?
-  // The BadgerChatroom doesn't unload/reload when switching
-  // chatrooms, only its props change! Try it yourself.
+  // reload messages
   useEffect(loadMessages, [props, post]);
 
   const [currPage, setcurrPage] = useState(1);
@@ -98,11 +96,20 @@ export default function BadgerChatroom(props) {
       content.current.value.trim() === ""
     ) {
       alert("You must provide both a title and a content!");
+    } else if (
+      title.current.value.length > 128 ||
+      content.current.value.length > 1024
+    ) {
+      alert(
+        "'title' must be 128 characters or fewer and 'content' must be 1024 characters or fewer"
+      );
     } else {
       let response = await postChat();
       if (response.data.msg === "Successfully posted message!") {
-        setPost((oldvalue) => !oldvalue);
         alert("Successfully posted!");
+        setPost((oldvalue) => !oldvalue);
+      } else if (response.data.msg === "You must be logged in to do that!") {
+        setLoginStatus([false]);
       }
     }
   };
@@ -137,16 +144,54 @@ export default function BadgerChatroom(props) {
   };
 
   const userCheck = async () => {
-    if (loginStatus[0] == true) {
-      let response = await getkUserName();
-
+    let response = await getkUserName();
+    if (response.data.isLoggedIn === false) {
+      setLoginStatus([false]);
+    } else if (response.data.isLoggedIn === true) {
       SetcurrentUser(response.data.user.username);
     }
   };
 
   useEffect(() => {
     userCheck();
-  }, [loginStatus]);
+  }, [props]);
+
+  //delete post and reload messages
+
+  const requestDeletePost = async (messageId) => {
+    try {
+      const response = await axios({
+        method: "delete",
+        url: messageId,
+        withCredentials: true,
+        headers: {
+          "X-CS571-ID": CS571.getBadgerId(),
+          "Content-Type": "application/json",
+        },
+      });
+
+      console.log(response);
+      return response;
+    } catch (err) {
+      console.log(err.response);
+      return err.response;
+    }
+  };
+
+  const deletePost = async (messageId) => {
+    const urlMessageId =
+      "https://cs571.org/api/f23/hw6/messages?id=" + String(messageId);
+
+    let response = await requestDeletePost(urlMessageId);
+
+    if (response.data.msg === "Successfully deleted message!") {
+      alert("Successfully deleted the post!");
+      setPost((oldvalue) => !oldvalue);
+      console.log(response);
+    } else if (response.data.msg === "You must be logged in to do that!") {
+      setLoginStatus([false]);
+    }
+  };
 
   return (
     <>
@@ -156,14 +201,20 @@ export default function BadgerChatroom(props) {
       {messages.length > 0 ? (
         <>
           <Container fluid>
-            <Row>
+            <Row className="g-5">
               {loginStatus[0] ? (
                 <Col xs={12} sm={10} md={6} lg={4} xl={4}>
                   <Form>
                     <Form.Label htmlFor="title">Post Title</Form.Label>
                     <Form.Control id="title" ref={title} />
+                    <br />
                     <Form.Label htmlFor="content">Post Content</Form.Label>
-                    <Form.Control id="content" ref={content} />
+                    <Form.Control
+                      id="content"
+                      as="textarea"
+                      style={{ height: "100px" }}
+                      ref={content}
+                    />
 
                     <br />
                     <Button variant="primary" onClick={handlePost}>
@@ -198,6 +249,8 @@ export default function BadgerChatroom(props) {
                             created={message.created}
                             currentUser={currentUser}
                             loginStatus={loginStatus}
+                            deletePost={deletePost}
+                            messageId={message.id}
                           />
                           <br />
                         </Col>
@@ -216,14 +269,20 @@ export default function BadgerChatroom(props) {
       ) : (
         <>
           <Container fluid>
-            <Row>
+            <Row className="g-5">
               {loginStatus[0] ? (
                 <Col xs={12} sm={10} md={6} lg={4} xl={4}>
                   <Form>
                     <Form.Label htmlFor="title">Post Title</Form.Label>
                     <Form.Control id="title" ref={title} />
+                    <br />
                     <Form.Label htmlFor="content">Post Content</Form.Label>
-                    <Form.Control id="content" ref={content} />
+                    <Form.Control
+                      id="content"
+                      as="textarea"
+                      style={{ height: "100px" }}
+                      ref={content}
+                    />
 
                     <br />
                     <Button variant="primary" onClick={handlePost}>

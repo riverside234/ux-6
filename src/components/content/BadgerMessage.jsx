@@ -2,6 +2,10 @@ import React from "react";
 import { Button, Card, Col, ListGroup } from "react-bootstrap";
 
 function BadgerMessage(props) {
+  const handleDelete = () => {
+    props.deletePost(props.messageId);
+  };
+
   const dt = new Date(props.created);
 
   return (
@@ -21,7 +25,9 @@ function BadgerMessage(props) {
         <ListGroup variant="flush">
           <ListGroup.Item style={{ backgroundColor: "#f0f0f0" }}>
             <div className="d-grid gap-2">
-              <Button variant="danger">Delete Post</Button>
+              <Button variant="danger" onClick={handleDelete}>
+                Delete Post
+              </Button>
             </div>
           </ListGroup.Item>
         </ListGroup>
